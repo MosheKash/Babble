@@ -1,0 +1,23 @@
+# Everything build.py downloads or builds: whisper.cpp, models, Forge MDKs, Gradle, JDKs, natives, logs
+.cache/
+
+# Built mod jars (~60 MB each, they bundle the model and native libraries): publish them as releases instead
+dist/
+
+# Python
+__pycache__/
+*.py[cod]
+
+# Native / Java build output, if built by hand outside build.py
+build/
+*.so
+*.class
+*.jar
+
+# Editors and OS
+.idea/
+*.iml
+.vscode/
+*.swp
+*~
+.DS_Store
