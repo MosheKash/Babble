@@ -57,7 +57,7 @@ PLATFORM_MODES = [("host", "this computer only (lean jar)"),
 GPU_MODES = [("auto", "every GPU engine this computer can build"), ("cpu", "CPU only")]
 CUDA_ARCHS = [("native", "this machine's GPU only (fast build)"), ("portable", "all NVIDIA GPUs since RTX 20xx (slower build)")]
 
-MOD_VERSION = "1.0.0"
+MOD_VERSION = "1.1.0"
 
 GITHUB_REPO = "MosheKash/Babble"
 # Universal jars use natives built by .github/workflows/natives.yml and published as release natives-<key>.

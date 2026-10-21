@@ -97,7 +97,7 @@ Minecraft **1.16.5 through 26.x**. One build script makes a jar for any Forge re
 | | |
 |---|---|
 | **Platforms** | Linux and Windows (x86-64) and macOS (Apple Silicon and Intel), with Forge |
-| **GPU** | Any GPU with a Vulkan driver on Linux and Windows (NVIDIA, AMD, Intel), and Metal on every Mac: about 0.02 s per check. Without a usable GPU, Babble runs on the CPU automatically (about 0.2 s; x86 CPUs need AVX2, i.e. 2013 or newer). |
+| **GPU** | Any GPU with a Vulkan driver on Linux and Windows (NVIDIA, AMD, Intel), and Metal on every Mac: about 0.02 s per check. Without a usable GPU, Babble runs on the CPU automatically (about 0.2 s). On Windows and Linux the CPU must support AVX2 (2013 or newer). |
 | **macOS** | Your launcher needs microphone permission (System Settings → Privacy & Security → Microphone). Prism Launcher asks for it automatically. |
 | **Multiplayer** | Install on the server too (blocks are broken server-side). No operator permissions needed. Single-player needs nothing extra. |
 | **Privacy** | The microphone is open only while you're in a world with voice on, and audio never leaves your PC. |
