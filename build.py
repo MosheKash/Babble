@@ -487,7 +487,8 @@ def build_natives(step_no, total, opts, jdk):
         out_dir = CACHE / "natives" / f"{plat}-{backend}-{variant}-{key}"
         lib = out_dir / lib_file(backend)
         if not lib.exists():
-            bdir = CACHE / "native-build" / f"{plat}-{backend}-{variant}-{key}"
+            # Short hashed build dir: Windows' MSBuild breaks once nested paths pass 260 characters.
+            bdir = CACHE / "nb" / hashlib.sha1(f"{plat}-{backend}-{variant}-{key}".encode()).hexdigest()[:10]
             print(f"    building the {backend} engine (first time only, a few minutes)…", flush=True)
             step.run(["cmake", "-S", ROOT / "native", "-B", bdir, *generator, "-DCMAKE_BUILD_TYPE=Release",
                       f"-DWHISPER_DIR={src}", f"-DJAVA_HOME_DIR={jdk}", f"-DLIB_OUTPUT=babble_{backend}",

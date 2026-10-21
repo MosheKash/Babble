@@ -76,7 +76,8 @@ jobs:
       - name: Vulkan SDK (Linux)
         if: runner.os == 'Linux' && matrix.vulkan
         run: |
-          sudo apt-get update -q && sudo apt-get install -y -q ninja-build
+          # libvulkan-dev: the loader to link against (the LunarG SDK no longer ships it; players use their driver's)
+          sudo apt-get update -q && sudo apt-get install -y -q ninja-build libvulkan-dev
           curl -sfL -o "$RUNNER_TEMP/vulkan.tar.xz" \
             "https://sdk.lunarg.com/sdk/download/$VULKAN_VERSION/linux/vulkansdk-linux-x86_64-$VULKAN_VERSION.tar.xz"
           mkdir -p "$RUNNER_TEMP/vulkan" && tar xf "$RUNNER_TEMP/vulkan.tar.xz" -C "$RUNNER_TEMP/vulkan"
