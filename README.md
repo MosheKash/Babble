@@ -11,7 +11,8 @@
 [![Latest release](https://img.shields.io/github/v/release/MosheKash/Babble?label=release&color=7dbf3b)](https://github.com/MosheKash/Babble/releases/latest)
 ![Minecraft 1.16.5 – 26.x](https://img.shields.io/badge/Minecraft-1.16.5%20%E2%80%93%2026.x-8a582f)
 ![Forge](https://img.shields.io/badge/loader-Forge-1e2a3a)
-![GPU](https://img.shields.io/badge/GPU-CUDA%20%2B%20CPU%20fallback-76b900)
+![Platforms](https://img.shields.io/badge/platforms-Linux%20%7C%20Windows%20%7C%20macOS-4b6cb7)
+![GPU](https://img.shields.io/badge/GPU-Vulkan%20%7C%20Metal%20%7C%20CUDA-76b900)
 [![License: MIT](https://img.shields.io/badge/license-MIT-3b2d63)](LICENSE)
 
 **[Download](https://github.com/MosheKash/Babble/releases/latest)** · [Features](#features) · [Install](#install) · [Settings](#settings) · [Modpacks](#modpacks) · [Troubleshooting](#troubleshooting) · [Building](#building)
@@ -26,7 +27,7 @@
 
 Babble listens to your microphone while you play. Mention a block, on purpose or in passing, and every block
 of that type around you breaks. Speech recognition runs **entirely on your machine** with
-[whisper.cpp](https://github.com/ggml-org/whisper.cpp), on your NVIDIA GPU with automatic CPU fallback.
+[whisper.cpp](https://github.com/ggml-org/whisper.cpp), on your GPU (Vulkan, Metal or CUDA) with automatic CPU fallback.
 Nothing is ever sent anywhere.
 
 Inspired by [Do Not Say the Name of This Block](https://www.curseforge.com/minecraft/mc-mods/do-not-say-the-name-of-this-block),
@@ -59,7 +60,7 @@ Reads the game's block list, so every mod's blocks just work, including mod-spec
 <td valign="top">
 
 **📦 Drop-in**<br>
-One jar, Forge the only dependency. The speech model and GPU libraries are inside.
+One jar for Linux, Windows and macOS, with Forge the only dependency. The speech model and GPU engines are inside.
 
 </td>
 </tr>
@@ -81,15 +82,23 @@ Minecraft **1.16.5 through 26.x**. One build script makes a jar for any Forge re
 
 ## Install
 
-1. Download the jar for your Minecraft version from **[Releases](https://github.com/MosheKash/Babble/releases/latest)**
-   (`babble-<minecraft>-forge-<forge>.jar`), or [build it yourself](#building) for any other version.
+1. Download the jar for your Minecraft version from **[Releases](https://github.com/MosheKash/Babble/releases/latest)**.
+   There are two kinds, and both run on Linux, Windows and macOS:
+   - **`babble-<minecraft>-forge-<forge>.jar`**: the one most people want. It uses Vulkan, Metal on Macs,
+     and falls back to the CPU.
+   - **`babble-<minecraft>-forge-<forge>-cuda.jar`**: also tries **CUDA** first, for NVIDIA GPUs with the
+     CUDA 12 runtime installed (it comes with the CUDA toolkit). It's slightly faster on NVIDIA and a bigger
+     download. Without the CUDA runtime it behaves exactly like the regular jar.
+
+   Or [build it yourself](#building) for any other version.
 2. Drop it into your instance's `mods/` folder.
 3. Launch, join a world, and start talking. That's it.
 
 | | |
 |---|---|
-| **Platform** | Linux x86-64 with Forge |
-| **GPU** | NVIDIA with the CUDA runtime for full speed (~0.02 s per check). Without it, Babble runs on the CPU automatically (~0.2 s). |
+| **Platforms** | Linux and Windows (x86-64) and macOS (Apple Silicon and Intel), with Forge |
+| **GPU** | Any GPU with a Vulkan driver on Linux and Windows (NVIDIA, AMD, Intel), and Metal on every Mac: about 0.02 s per check. Without a usable GPU, Babble runs on the CPU automatically (about 0.2 s; x86 CPUs need AVX2, i.e. 2013 or newer). |
+| **macOS** | Your launcher needs microphone permission (System Settings → Privacy & Security → Microphone). Prism Launcher asks for it automatically. |
 | **Multiplayer** | Install on the server too (blocks are broken server-side). No operator permissions needed. Single-player needs nothing extra. |
 | **Privacy** | The microphone is open only while you're in a world with voice on, and audio never leaves your PC. |
 
@@ -207,10 +216,11 @@ The server doesn't have Babble installed.
 </details>
 
 <details>
-<summary><b>Acceleration says "CPU (no CUDA)"</b></summary>
+<summary><b>Acceleration says "CPU (no GPU engine)"</b></summary>
 
-The CUDA runtime libraries weren't found. Install your distribution's CUDA package, or keep using the CPU
-fallback.
+No GPU engine could start: on Linux and Windows that means no Vulkan driver was found. Update your graphics
+driver (on Linux, install your distribution's Vulkan driver package, e.g. `mesa-vulkan-drivers` or the NVIDIA
+driver), or keep using the CPU fallback. `logs/latest.log` lists each engine Babble tried.
 
 </details>
 
@@ -269,7 +279,7 @@ never have to edit it, but you can:
 1. **Listen.** 16 kHz audio from your microphone (through Minecraft's own OpenAL), in 20 ms frames. A voice
    detector compares loudness against the background noise and ignores sounds too short to be words.
 2. **Transcribe, repeatedly.** While you talk, everything said so far is transcribed every 120 ms by
-   whisper.cpp. On an RTX-class GPU each pass takes 15–30 ms.
+   whisper.cpp. On an RTX-class GPU each pass takes 15–30 ms, through CUDA or Vulkan alike.
 3. **Match.** The transcript is normalized and compared against every block name in the game: longest name
    first, with fuzzy matching for long names and space-insensitive matching.
 4. **Decide.** A name followed by more words fires immediately. A name at the very end of what's been heard
@@ -287,16 +297,31 @@ press Enter:
 
 ```sh
 ./build.py                     # interactive: pick a version, then options
-./build.py 1.20.1 -y           # newest recommended Forge for 1.20.1, default options
+./build.py 1.20.1 -y           # lean jar for this computer, newest recommended Forge for 1.20.1
+./build.py 1.20.1 -y --universal          # universal jar: Linux + Windows + macOS
+./build.py 1.20.1 -y --universal --cuda   # universal jar that also tries CUDA first
 ./build.py 1.21.1-52.1.0 -y    # an exact Forge version
 ./build.py --mic-test          # test your mic and recognition in the terminal, no Minecraft needed
 ```
 
+There are three kinds of jar. Each tries its engines in order and uses the first one that works:
+
+| Jar | Engines, in order | |
+|---|---|---|
+| **Universal** `babble-<mc>-forge-<forge>.jar` | Linux, Windows: Vulkan → CPU · macOS: Metal | Runs everywhere, on any GPU. The main download. |
+| **Universal + CUDA** `babble-<mc>-forge-<forge>-cuda.jar` | Linux, Windows: **CUDA** → Vulkan → CPU · macOS: Metal | Same, but tries CUDA 12 first on NVIDIA. Bigger. |
+| **Lean** `babble-<mc>-forge-<forge>-<platform>.jar` | Whatever this computer can build, e.g. CUDA → Vulkan → CPU | Only this computer's OS, built locally. Smallest. |
+
+The universal jars' engines are built by the [natives workflow](.github/workflows/natives.yml) on GitHub's Linux,
+Windows and macOS machines, published as a `natives-*` pre-release, and downloaded by `build.py`.
+
 Jars land in `dist/`. Each build uses that version's official Forge MDK, so Gradle, ForgeGradle and Java always
 match what Forge expects, and missing JDKs (Java 8 for 1.16.5, Java 25 for 26.x) are downloaded automatically.
 
-**Needs:** Python 3.8+, git, CMake, a C++ compiler, a JDK (17 or 21), and the CUDA toolkit for the GPU build
-(without `nvcc` you get a CPU-only build). Everything the build downloads (whisper.cpp, models, Forge MDKs,
+**Needs** (lean builds): Python 3.8+, git, CMake, a C++ compiler and a JDK (17 or 21). For the Vulkan engine
+you also need `glslc` and the Vulkan loader, or the [Vulkan SDK](https://vulkan.lunarg.com/sdk/home) (missing
+headers are fetched automatically). The CUDA toolkit adds the CUDA engine. Universal builds only need Python
+and a JDK. Everything the build downloads (whisper.cpp, models, Forge MDKs,
 Gradle, Minecraft) is kept in `.cache/`; delete it to reclaim the space.
 
 Tested on Minecraft 1.16.5, 1.18.2, 1.19.2, 1.20.1, 1.21.1, 1.21.11 and 26.3.
@@ -307,7 +332,10 @@ Tested on Minecraft 1.16.5, 1.18.2, 1.19.2, 1.20.1, 1.21.1, 1.21.11 and 26.3.
 | Option | |
 |---|---|
 | `--model <id>` | Which speech model to bundle (default `tiny.en-q8_0`). |
-| `--cpu-only` | Skip the CUDA library. |
+| `--universal` | Build the universal jar (Linux + Windows + macOS) from the published engines. |
+| `--cuda` | With `--universal`: also bundle the CUDA engines (the `-cuda` jar). |
+| `--cpu-only` | Lean jar with only the CPU engine. |
+| `--no-cuda` | Don't build the CUDA engine even if the CUDA toolkit is installed. |
 | `--cuda-arch native\|portable` | `native` (default) builds for this machine's GPU only; `portable` covers every NVIDIA GPU since the RTX 20 series, which is slower to build. |
 | `--install <mods dir>` | Also copy the jar into a mods folder (replacing older Babble jars). |
 | `-y` | Skip the options screen. |
@@ -321,7 +349,8 @@ Tested on Minecraft 1.16.5, 1.18.2, 1.19.2, 1.20.1, 1.21.1, 1.21.11 and 26.3.
 |---|---|
 | `core/` | Version-independent Java 8: microphone, voice detection, whisper bindings, name matching, model downloads. |
 | `mod/` | The Minecraft side: mod entry point, client, settings screen. One source for every version, with `//#if MC >= 11903`-style conditionals that `build.py` resolves. |
-| `native/` | The JNI bridge. whisper.cpp and ggml are statically linked into one library per backend (CUDA, CPU). |
+| `native/` | The JNI bridge. whisper.cpp and ggml are statically linked into one library per engine (CUDA, Vulkan, Metal, CPU). |
+| `.github/workflows/natives.yml` | Builds the Linux, Windows and macOS engines for universal jars. |
 | `tools/VoiceTest.java` | Test harness: benchmarks, streaming recordings through the pipeline, and `--mic-test`. |
 | `tools/logo.py` | Draws the pixel-art logo (`assets/logo.png`). |
 | `build.py` | The builder and its TUI. |
