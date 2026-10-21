@@ -4,6 +4,7 @@
 
 #include <jni.h>
 
+#include <cctype>
 #include <cstring>
 #include <string>
 #include <vector>
@@ -95,17 +96,19 @@ JNIEXPORT jbyteArray JNICALL Java_dev_babble_core_WhisperNative_transcribe(
     return to_bytes(env, text);
 }
 
-// Comma-separated names of the GPU devices ggml can see (empty when running on CPU only).
+// The GPU whisper runs on (the first GPU or integrated GPU, as whisper picks it), e.g.
+// "NVIDIA GeForce RTX 5080 (Vulkan)"; empty when only the CPU backend is available.
 JNIEXPORT jbyteArray JNICALL Java_dev_babble_core_WhisperNative_gpuDevices(JNIEnv *env, jclass) {
-    std::string out;
     for (size_t i = 0; i < ggml_backend_dev_count(); i++) {
         ggml_backend_dev_t dev = ggml_backend_dev_get(i);
-        if (ggml_backend_dev_type(dev) == GGML_BACKEND_DEVICE_TYPE_GPU) {
-            if (!out.empty()) out += ", ";
-            out += ggml_backend_dev_description(dev);
-        }
+        enum ggml_backend_dev_type type = ggml_backend_dev_type(dev);
+        if (type != GGML_BACKEND_DEVICE_TYPE_GPU && type != GGML_BACKEND_DEVICE_TYPE_IGPU) continue;
+        std::string backend = ggml_backend_dev_name(dev);  // "CUDA0", "Vulkan0", "MTL0"
+        while (!backend.empty() && isdigit((unsigned char) backend.back())) backend.pop_back();
+        if (backend == "MTL") backend = "Metal";
+        return to_bytes(env, std::string(ggml_backend_dev_description(dev)) + " (" + backend + ")");
     }
-    return to_bytes(env, out);
+    return to_bytes(env, "");
 }
 
 }  // extern "C"

@@ -18,7 +18,7 @@ public final class Babble {
 
     private static volatile VoiceConfig cfg;
     private static volatile SpeechEngine engine;
-    private static volatile boolean cudaLibrary;
+    private static volatile String backend = "none";
     private static volatile String loading;
     private static volatile String error;
     private static final Object LOAD_LOCK = new Object();
@@ -39,19 +39,33 @@ public final class Babble {
             }
             String stamp = bundle.getProperty("stamp", "0");
             File dir = new File(workDir, stamp);
-            String platform = platform();
 
-            File cuda = extract(BUNDLE + "natives/" + platform + "/" + System.mapLibraryName("babble_cuda"), dir);
-            File cpu = extract(BUNDLE + "natives/" + platform + "/" + System.mapLibraryName("babble_cpu"), dir);
+            // natives.<platform> lists the backends in this jar, best first: e.g. cuda,vulkan,cpu.
+            // macOS jars carry one universal (arm64 + x86_64) library under "macos-universal".
+            String platform = platform();
+            String dirName = platform;
+            String list = bundle.getProperty("natives." + platform);
+            if (list == null && platform.startsWith("macos")) list = bundle.getProperty("natives." + (dirName = "macos-universal"));
+            if (list == null) {
+                throw new IOException("this Babble jar has no speech engine for " + platform
+                        + " (use the universal jar, or build one on this computer)");
+            }
             File bundled = extract(BUNDLE + "model/" + bundle.getProperty("model"), dir);
             if (bundled == null) throw new IOException("model missing from the mod jar");
+            java.util.List<File> libs = new java.util.ArrayList<File>();
+            for (String name : list.split(",")) {
+                File f = extract(BUNDLE + "natives/" + dirName + "/" + System.mapLibraryName("babble_" + name.trim()), dir);
+                if (f != null) libs.add(f);
+            }
             deleteOldStamps(workDir, stamp);
             Models.init(workDir, bundled);
 
-            // The CUDA build also contains the CPU backend, so loading it whenever possible lets the
-            // player flip GPU on/off in game. The CPU-only build is the fallback when CUDA isn't installed.
-            File lib = WhisperNative.load(cuda, cpu);
-            cudaLibrary = lib.equals(cuda);
+            // Every GPU build also contains the CPU backend, so the first library that loads (its GPU
+            // runtime present: CUDA, the Vulkan loader, Metal) lets the player flip GPU on/off in game.
+            // The CPU-only build is the last resort.
+            File lib = WhisperNative.load(libs.toArray(new File[0]));
+            backend = lib.getName().replaceAll("^(lib)?babble_|\\.(so|dll|dylib)$", "");
+            Log.info("Using the " + backend + " speech engine (" + lib.getName() + ")");
             WhisperNative.setVerbose(config.verbose);
 
             String id = configuredModel();
@@ -73,8 +87,8 @@ public final class Babble {
         File f = Models.file(id);
         if (f == null) throw new IllegalStateException("model " + id + " is not installed");
         long t0 = System.nanoTime();
-        WhisperNative.Model m = new WhisperNative.Model(f.getAbsolutePath(), id, cfg.useGpu && cudaLibrary, cfg.flashAttention);
-        // Warm-up: the first CUDA call pays for kernel/graph setup, don't let a player's first word pay it.
+        WhisperNative.Model m = new WhisperNative.Model(f.getAbsolutePath(), id, cfg.useGpu && gpuAvailable(), cfg.flashAttention);
+        // Warm-up: the first GPU call pays for kernel/pipeline setup, don't let a player's first word pay it.
         m.transcribe(new float[Microphone.SAMPLE_RATE], Microphone.SAMPLE_RATE, cfg.prompt, cfg.threads, 128);
         Log.info(String.format("Loaded %s on %s in %d ms", id, m.devices, (System.nanoTime() - t0) / 1_000_000));
         return m;
@@ -112,9 +126,14 @@ public final class Babble {
         return engine;
     }
 
-    /** Whether the CUDA library loaded, i.e. whether GPU acceleration can be switched on at all. */
+    /** Whether a GPU-capable library loaded (CUDA, Vulkan or Metal), i.e. whether GPU can be switched on at all. */
     public static boolean gpuAvailable() {
-        return cudaLibrary;
+        return !backend.equals("cpu") && !backend.equals("none");
+    }
+
+    /** The loaded speech engine: "cuda", "vulkan", "metal", "cpu", or "none" before it starts. */
+    public static String backend() {
+        return backend;
     }
 
     /** Model id currently being loaded, or null. */

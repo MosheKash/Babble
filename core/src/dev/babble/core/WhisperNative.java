@@ -17,7 +17,7 @@ public final class WhisperNative {
 
     static native byte[] gpuDevices();
 
-    /** Loads the first library that links successfully (CUDA build first, then CPU). Returns the one used. */
+    /** Loads the first library that links successfully (GPU builds first, CPU last). Returns the one used. */
     static File load(File... candidates) {
         UnsatisfiedLinkError last = null;
         for (File lib : candidates) {

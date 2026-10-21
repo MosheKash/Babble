@@ -180,7 +180,7 @@ final class VoiceSettingsScreen extends Screen {
     }
 
     private String gpuLabel() {
-        if (!Babble.gpuAvailable()) return "Acceleration: CPU §7(no CUDA)";
+        if (!Babble.gpuAvailable()) return "Acceleration: CPU §7(no GPU engine)";
         SpeechEngine e = Babble.engine();
         boolean onGpu = e != null && Babble.loading() == null ? e.model().gpu : cfg.useGpu;
         return "Acceleration: " + (onGpu ? "GPU" : "CPU");
