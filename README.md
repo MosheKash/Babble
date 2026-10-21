@@ -1,83 +1,134 @@
+<div align="center">
+
+<img src="assets/logo.png" alt="Babble logo" width="180">
+
 # Babble
 
-**Say a block's name and it's gone.** Babble listens to your microphone while you play. Say a block's name,
-even in passing ("ugh, there's so much *dirt* here"), and every block of that type around you breaks.
+### Say a block's name, and it's gone.
 
-Speech recognition runs entirely on your machine with [whisper.cpp](https://github.com/ggml-org/whisper.cpp),
-on your NVIDIA GPU (with automatic CPU fallback). Nothing is sent anywhere.
+*Voice-controlled block breaking for Minecraft Forge, powered by on-device, GPU-accelerated speech recognition.*
 
-Babble is inspired by [Do Not Say the Name of This Block](https://www.curseforge.com/minecraft/mc-mods/do-not-say-the-name-of-this-block),
-and builds on its idea with GPU-accelerated recognition, mid-sentence reactions, modpack support, an
-in-game settings screen with a model picker, and builds for every Forge version from 1.16.5 to 26.x.
+[![Latest release](https://img.shields.io/github/v/release/MosheKash/Babble?label=release&color=7dbf3b)](https://github.com/MosheKash/Babble/releases/latest)
+![Minecraft 1.16.5 – 26.x](https://img.shields.io/badge/Minecraft-1.16.5%20%E2%80%93%2026.x-8a582f)
+![Forge](https://img.shields.io/badge/loader-Forge-1e2a3a)
+![GPU](https://img.shields.io/badge/GPU-CUDA%20%2B%20CPU%20fallback-76b900)
+[![License: MIT](https://img.shields.io/badge/license-MIT-3b2d63)](LICENSE)
 
-- **Instant.** Blocks break mid-sentence, about 120 ms after the word is heard, without waiting for you to
-  finish talking.
-- **Works with any modpack.** It reads the block list from the game, so every mod's blocks are included.
-- **Drop-in.** A single jar with Forge as the only dependency. The speech model and native libraries are
-  inside it.
-- **In-game settings** with sliders, a model picker and live status. No config files to edit.
-- **Every Forge version from Minecraft 1.16.5 to 26.x.** The build script makes a jar for whichever one
-  you pick.
+**[Download](https://github.com/MosheKash/Babble/releases/latest)** · [Features](#features) · [Install](#install) · [Settings](#settings) · [Modpacks](#modpacks) · [Troubleshooting](#troubleshooting) · [Building](#building)
+
+</div>
 
 ---
 
-## Installing
+> 🗣️ *"Ugh, there's so much **dirt** here and…"*
+>
+> 💥 **Dirt** breaks before you finish the sentence.
 
-1. Get the jar for your Minecraft/Forge version (`babble-<minecraft>-forge-<forge>.jar`, built as described
-   [below](#building)).
-2. Put it in your instance's `mods/` folder.
-3. Launch the game and join a world. That's it.
+Babble listens to your microphone while you play. Mention a block, on purpose or in passing, and every block
+of that type around you breaks. Speech recognition runs **entirely on your machine** with
+[whisper.cpp](https://github.com/ggml-org/whisper.cpp), on your NVIDIA GPU with automatic CPU fallback.
+Nothing is ever sent anywhere.
 
-On first launch Babble unpacks its speech model and native libraries into `<instance>/babble/`, and starts
-listening once you're in a world. The microphone is closed whenever you're in a menu, not in a world, or have
-voice turned off.
+Inspired by [Do Not Say the Name of This Block](https://www.curseforge.com/minecraft/mc-mods/do-not-say-the-name-of-this-block),
+rebuilt to be faster, smarter and run almost everywhere.
 
-**Requirements:** Linux x86-64 and Forge. For GPU speed you need an NVIDIA GPU with the CUDA runtime
-installed. Without it Babble runs on the CPU automatically: still usable, just a bit slower (about 0.2 s
-per check instead of 0.02 s).
+## Features
 
-**Multiplayer:** the server needs Babble installed too, because the blocks are broken server-side. In
-single-player nothing extra is needed. No operator permissions are required.
+<table>
+<tr>
+<td width="50%" valign="top">
 
----
+**⚡ Instant**<br>
+Blocks break mid-sentence, about **120 ms** after the word is heard. No waiting for you to stop talking.
+
+</td>
+<td width="50%" valign="top">
+
+**🎯 One word, one break**<br>
+Every mention counts exactly once, however long you keep talking.
+
+</td>
+</tr>
+<tr>
+<td valign="top">
+
+**🧩 Any modpack**<br>
+Reads the game's block list, so every mod's blocks just work, including mod-specific words like "Yellorite".
+
+</td>
+<td valign="top">
+
+**📦 Drop-in**<br>
+One jar, Forge the only dependency. The speech model and GPU libraries are inside.
+
+</td>
+</tr>
+<tr>
+<td valign="top">
+
+**🎛️ In-game settings**<br>
+Sliders, a model picker with in-game downloads, mic selection and a GPU/CPU toggle. Every change applies instantly.
+
+</td>
+<td valign="top">
+
+**🕰️ Every version**<br>
+Minecraft **1.16.5 through 26.x**. One build script makes a jar for any Forge release.
+
+</td>
+</tr>
+</table>
+
+## Install
+
+1. Download the jar for your Minecraft version from **[Releases](https://github.com/MosheKash/Babble/releases/latest)**
+   (`babble-<minecraft>-forge-<forge>.jar`), or [build it yourself](#building) for any other version.
+2. Drop it into your instance's `mods/` folder.
+3. Launch, join a world, and start talking. That's it.
+
+| | |
+|---|---|
+| **Platform** | Linux x86-64 with Forge |
+| **GPU** | NVIDIA with the CUDA runtime for full speed (~0.02 s per check). Without it, Babble runs on the CPU automatically (~0.2 s). |
+| **Multiplayer** | Install on the server too (blocks are broken server-side). No operator permissions needed. Single-player needs nothing extra. |
+| **Privacy** | The microphone is open only while you're in a world with voice on, and audio never leaves your PC. |
+
+On first launch Babble unpacks its model and libraries into `<instance>/babble/`.
 
 ## Using it
 
-Just talk. When Babble hears a block name it breaks every block of that type within the radius (6 blocks,
-in a sphere, by default) and shows the name in the action bar.
+Just talk. When Babble hears a block name, every block of that type within the radius (6 blocks, in a
+sphere, by default) breaks, and the name flashes in your action bar.
 
-- **Names are flexible.** It understands display names ("Grass Block") and ids ("grass block"), plurals
-  ("logs"), spacing ("deep slate") and small mishearings of long names ("stone breaks" → Stone Bricks).
-- **The longest name wins.** "Stone bricks" breaks Stone Bricks, not Stone.
-- **Each time you say it counts.** "Dirt here… and more dirt over there" breaks dirt twice. Saying a word
-  once always breaks it once, however long you keep talking afterwards.
-- **Safe defaults.** Air is never touched, and you can exclude any other block (see
-  [settings](#all-settings)).
+- **Names are forgiving:** display names ("Grass Block"), ids, plurals ("logs"), spacing ("deep slate") and
+  small mishearings of long names ("stone breaks" → Stone Bricks).
+- **The longest name wins:** "stone bricks" breaks Stone Bricks, not Stone.
+- **Repeats count:** "dirt here… and more dirt over there" breaks dirt twice.
+- **Safe by default:** air is never touched, and you can [exclude any block](#troubleshooting).
 
-### Settings screen
+### Commands
 
-Open it with **Mods → Babble → Config** from the main menu, or **`/babble`** in game. Changes save and
-apply immediately, with no restart, even for switching models or GPU/CPU.
-
-**General page**
-
-| Setting | |
+| Command | |
 |---|---|
-| **Model** | Click to cycle through the speech models, then **Download** / **Use**. The bundled model works offline; the others download in-game with a progress indicator and swap in when ready. |
-| **Voice** | Turn listening on or off. |
-| **Mic** | Cycles through your capture devices (or the system default). |
-| **Drop items** | Whether broken blocks drop as items. |
-| **Shape** | Sphere or cube around you. |
-| **Acceleration** | GPU or CPU. |
-| **Show heard** | Action-bar message when a block is heard. |
-| **Debug chat** | A chat line for every heard block (see [Troubleshooting](#troubleshooting)). |
-| **Mod vocabulary** | Teach the speech model the unusual words in your mods' block names. |
-| **Show transcripts** | Show everything Babble hears in the action bar, even without a block name. |
-| **Longer names** | *Instant* (default) breaks "stone" the moment it's heard. *Wait* holds names like "stone" until the next word shows you didn't mean "stone bricks", about 0.3 s slower for those names. |
+| `/babble` | Open the settings screen. |
+| `/babble debug [on\|off]` | Show a chat line for every heard block: what was heard, which blocks, how fast. |
 
-The bottom of the page shows what's active: microphone, model, GPU or CPU, and the last thing Babble heard.
+Both run client-side only, so they work on any server.
 
-**Tuning page:** each setting has a slider, plus a box where you can type an exact value.
+## Settings
+
+Open **Mods → Babble → Config** from the main menu, or type **`/babble`** in game. Every change saves and
+applies instantly, even switching models or GPU/CPU.
+
+**General:** speech **model** (download and switch in-game), **voice** on/off, **mic**, **drop items**,
+sphere/cube **shape**, **GPU/CPU**, **show heard**, **debug chat**, **mod vocabulary**, **show transcripts**,
+and **longer names** (*Instant*, or *Wait* to hold "stone" until it's clear you didn't mean "stone bricks").
+A live status line shows the active mic, model, GPU, and the last thing it heard.
+
+**Tuning:** sliders, each with a box to type an exact value.
+
+<details>
+<summary><b>Tuning reference</b></summary>
 
 | Setting | Range | Default | |
 |---|---|---|---|
@@ -91,15 +142,7 @@ The bottom of the page shows what's active: microphone, model, GPU or CPU, and t
 | Ignore sounds shorter than | 0–600 ms | 120 | Filters out clicks, pops and breaths. |
 | CPU threads | 1–all cores | half your cores, max 8 | Used by the CPU fallback. |
 
-### Commands
-
-| Command | |
-|---|---|
-| `/babble` | Open the settings screen. |
-| `/babble debug [on\|off]` | Toggle a chat line for every heard block. |
-
-Both run on your side only, so they work on any server, even one without Babble. (The mod also registers
-`/babble-break` on the server; that's what the client sends when it hears a block, and you never need to type it.)
+</details>
 
 ### Speech models
 
@@ -111,61 +154,83 @@ Both run on your side only, so they work on any server, even one without Babble.
 | `base.en` | 141 MB | Full precision. |
 | `small.en-q5_1` | 181 MB | Most accurate; GPU recommended. |
 
-Downloaded models are stored in `<instance>/babble/models/` and survive updates.
-
----
+Downloaded models live in `<instance>/babble/models/` and survive updates.
 
 ## Modpacks
 
-Babble isn't tied to vanilla. Whenever you join a world it re-reads the game's block list, so whatever mods
-are installed are what it listens for.
+Babble isn't tied to vanilla. Every time you join a world it re-reads the game's block list, so whatever is
+installed is what it listens for.
 
 - **Shared names break everything with that name.** If vanilla, Create and Mekanism all add Copper Ore,
-  saying "copper ore" breaks all three.
+  "copper ore" breaks all three.
 - **Material words.** Many mods have no block called just "Cinnabar", only Cinnabar Ore, Cinnabar Block and
-  so on. Saying the material breaks the whole family. To keep normal speech safe, this only applies to words
-  that appear in no vanilla block name and aren't generic ("advanced", "red", "oak"...).
-- **Modded vocabulary.** The speech model has never heard "Yellorite" or "Certus Quartz". Babble feeds it the
-  most common distinctive words from your mods' block names, which roughly doubled correct recognition of
-  modded names in testing.
+  so on. Saying the material breaks the whole family. To keep everyday speech safe, this only applies to
+  words that appear in no vanilla block name and aren't generic ("advanced", "red", "oak").
+- **Modded vocabulary.** The speech model is taught your mods' unusual words ("Yellorite", "Certus Quartz"),
+  which roughly doubled correct recognition of modded names in testing.
 - **No lag.** Matching a sentence against 30,000 blocks takes under a quarter of a millisecond, off the game
   thread.
 
----
-
 ## Troubleshooting
 
-**It doesn't react to a word.** Turn on **Show transcripts** (or `/babble debug on`) to see what Babble
-actually hears:
+<details>
+<summary><b>It doesn't react to a word</b></summary>
+
+Turn on **Show transcripts** (or `/babble debug on`) to see what Babble actually hears.
 - *Nothing at all:* check **Mic** on the settings page (the status line shows which one is in use), or lower
   **Speech threshold**.
 - *The wrong word* (e.g. "Bluestone" for glowstone): switch to the **base.en** model, which is much more
   accurate and nearly free on a GPU.
 
-**It breaks a shorter name first** (stone, then stone bricks): set **Longer names** to *Wait*.
+</details>
 
-**It breaks something I didn't mean.** Add the block id to `excludedBlocks` in `config/babble.properties`.
-Use `/babble debug on` to see exactly what was heard.
+<details>
+<summary><b>It breaks a shorter name first</b> (stone, then stone bricks)</summary>
 
-**"Unknown command" in multiplayer:** the server doesn't have Babble installed.
+Set **Longer names** to *Wait*.
 
-**Acceleration says "CPU (no CUDA)":** the CUDA runtime libraries weren't found. Install your distribution's
-CUDA package, or keep using the CPU fallback.
+</details>
 
-**PolyMC: "Unable to detect the forge installer!"** That's PolyMC failing to download Forge's installer, not
-Babble. Use [Prism Launcher](https://prismlauncher.org) (PolyMC's maintained successor), or put
-`forge-<version>-installer.jar` from maven.minecraftforge.net into PolyMC's
-`libraries/net/minecraftforge/forge/<version>/` folder.
+<details>
+<summary><b>It breaks something I didn't mean</b></summary>
+
+Add the block id to `excludedBlocks` in `config/babble.properties`, and use `/babble debug on` to see exactly
+what was heard.
+
+</details>
+
+<details>
+<summary><b>"Unknown command" in multiplayer</b></summary>
+
+The server doesn't have Babble installed.
+
+</details>
+
+<details>
+<summary><b>Acceleration says "CPU (no CUDA)"</b></summary>
+
+The CUDA runtime libraries weren't found. Install your distribution's CUDA package, or keep using the CPU
+fallback.
+
+</details>
+
+<details>
+<summary><b>PolyMC: "Unable to detect the forge installer!"</b></summary>
+
+That's PolyMC failing to download Forge's installer, not Babble. Use [Prism Launcher](https://prismlauncher.org)
+(PolyMC's maintained successor), or put `forge-<version>-installer.jar` from maven.minecraftforge.net into
+PolyMC's `libraries/net/minecraftforge/forge/<version>/` folder.
+
+</details>
 
 The game log (`logs/latest.log`) has a `[Babble]` line for every important step: which library and model
 loaded, on which GPU, which microphone, and how many block names it's listening for.
 
----
+<details>
+<summary><b>All config keys</b> (<code>config/babble.properties</code>)</summary>
 
-## All settings
-
-Everything in the settings screen is stored in `config/babble.properties`, which is created on first launch
-with every option documented. You never have to edit it, but you can:
+Everything in the settings screen is stored here, created on first launch with every option documented. You
+never have to edit it, but you can:
 
 | Key | Default | |
 |---|---|---|
@@ -194,9 +259,12 @@ with every option documented. You never have to edit it, but you can:
 | `showHeard` / `showTranscripts` / `debugChat` | `true` / `false` / `false` | Feedback options. |
 | `verbose` | `false` | Extra logging. |
 
----
+</details>
 
 ## How it works
+
+<details>
+<summary><b>From your voice to broken blocks, in five steps</b></summary>
 
 1. **Listen.** 16 kHz audio from your microphone (through Minecraft's own OpenAL), in 20 ms frames. A voice
    detector compares loudness against the background noise and ignores sounds too short to be words.
@@ -210,18 +278,31 @@ with every option documented. You never have to edit it, but you can:
 5. **Break.** The client sends `/babble-break <radius> <block ids>`, and the server breaks the blocks with
    normal drops and particles.
 
----
+</details>
 
 ## Building
 
-All jars are built by one script. Type a Minecraft or Forge version, pick options, and it does the rest:
+One script builds a jar for any Forge release from Minecraft 1.16.5 to 26.x. Type a version, pick options,
+press Enter:
 
 ```sh
-./build.py                     # interactive: pick a version, then options, then Enter
+./build.py                     # interactive: pick a version, then options
 ./build.py 1.20.1 -y           # newest recommended Forge for 1.20.1, default options
 ./build.py 1.21.1-52.1.0 -y    # an exact Forge version
-./build.py --mic-test          # test your microphone and recognition in the terminal, no Minecraft needed
+./build.py --mic-test          # test your mic and recognition in the terminal, no Minecraft needed
 ```
+
+Jars land in `dist/`. Each build uses that version's official Forge MDK, so Gradle, ForgeGradle and Java always
+match what Forge expects, and missing JDKs (Java 8 for 1.16.5, Java 25 for 26.x) are downloaded automatically.
+
+**Needs:** Python 3.8+, git, CMake, a C++ compiler, a JDK (17 or 21), and the CUDA toolkit for the GPU build
+(without `nvcc` you get a CPU-only build). Everything the build downloads (whisper.cpp, models, Forge MDKs,
+Gradle, Minecraft) is kept in `.cache/`; delete it to reclaim the space.
+
+Tested on Minecraft 1.16.5, 1.18.2, 1.19.2, 1.20.1, 1.21.1, 1.21.11 and 26.3.
+
+<details>
+<summary><b>Build options</b></summary>
 
 | Option | |
 |---|---|
@@ -231,18 +312,10 @@ All jars are built by one script. Type a Minecraft or Forge version, pick option
 | `--install <mods dir>` | Also copy the jar into a mods folder (replacing older Babble jars). |
 | `-y` | Skip the options screen. |
 
-Jars land in `dist/`. Each build downloads that version's official Forge MDK, so Gradle, ForgeGradle and
-Java always match what Forge expects. Missing JDKs (Java 8 for 1.16.5, Java 25 for 26.x) are downloaded
-automatically.
+</details>
 
-**Needs:** Python 3.8+, git, CMake, a C++ compiler, a JDK (17 or 21), and the CUDA toolkit for the GPU build
-(without `nvcc` you get a CPU-only build). Everything the build downloads (whisper.cpp, models, Forge MDKs,
-Gradle, Minecraft) is kept in `.cache/`; delete it to reclaim the space.
-
-Tested on Minecraft 1.16.5, 1.18.2, 1.19.2, 1.20.1, 1.21.1, 1.21.11 and 26.3. Other versions from 1.16.5 up
-build from the same source.
-
-### Project layout
+<details>
+<summary><b>Project layout</b></summary>
 
 | Path | |
 |---|---|
@@ -250,9 +323,10 @@ build from the same source.
 | `mod/` | The Minecraft side: mod entry point, client, settings screen. One source for every version, with `//#if MC >= 11903`-style conditionals that `build.py` resolves. |
 | `native/` | The JNI bridge. whisper.cpp and ggml are statically linked into one library per backend (CUDA, CPU). |
 | `tools/VoiceTest.java` | Test harness: benchmarks, streaming recordings through the pipeline, and `--mic-test`. |
+| `tools/logo.py` | Draws the pixel-art logo (`assets/logo.png`). |
 | `build.py` | The builder and its TUI. |
 
----
+</details>
 
 ## Credits
 
@@ -260,9 +334,11 @@ build from the same source.
 - **Inspiration:** [Do Not Say the Name of This Block](https://www.curseforge.com/minecraft/mc-mods/do-not-say-the-name-of-this-block),
   the original "say a block, lose the block" mod. Babble takes its idea and adds GPU support, instant
   mid-sentence reactions, modpack awareness, in-game settings and many more Minecraft versions.
-- Speech recognition: [whisper.cpp](https://github.com/ggml-org/whisper.cpp) (MIT) running OpenAI's
+- **Speech recognition:** [whisper.cpp](https://github.com/ggml-org/whisper.cpp) (MIT) running OpenAI's
   [Whisper](https://github.com/openai/whisper) models (MIT).
 
-## License
+<div align="center">
 
-[MIT](LICENSE) © 2026 Moshe Kashlinsky
+**[MIT](LICENSE)** © 2026 Moshe Kashlinsky
+
+</div>
