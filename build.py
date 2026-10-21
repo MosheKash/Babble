@@ -492,7 +492,11 @@ def prepare_project(step_no, total, entry, libs, model_path, opts):
 
     # Our sources replace the example mod; the MDK's pack.mcmeta stays (its format matches the version).
     shutil.rmtree(work / "src" / "main" / "java", ignore_errors=True)
-    shutil.rmtree(work / "src" / "main" / "resources" / "babble", ignore_errors=True)
+    # Clear every bundle folder we may have written before (incl. ones from older mod names), keeping only
+    # the MDK's own pack.mcmeta and META-INF; otherwise stale models/natives end up in the jar too.
+    for old in (work / "src" / "main" / "resources").glob("*"):
+        if old.is_dir() and old.name != "META-INF":
+            shutil.rmtree(old)
     java = work / "src" / "main" / "java" / "dev" / "babble"
     shutil.copytree(ROOT / "core" / "src" / "dev" / "babble" / "core", java / "core")
     for f in (ROOT / "mod").glob("*.java"):
