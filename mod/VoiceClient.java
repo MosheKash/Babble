@@ -73,7 +73,6 @@ final class VoiceClient {
     static void start(VoiceConfig config) {
         cfg = config;
         workDir = new File(FMLPaths.GAMEDIR.get().toFile(), "babble");
-        migrateOldWorkDir(new File(FMLPaths.GAMEDIR.get().toFile(), "voiceblocks"));
         Models.setWorkDir(workDir);
         // Mods list -> Babble -> Config
 //#if MC >= 11900
@@ -100,24 +99,6 @@ final class VoiceClient {
         }
     }
 
-    /** Keeps models downloaded under the mod's old name ("voiceblocks/") and drops its unpacked natives. */
-    private static void migrateOldWorkDir(File old) {
-        if (!old.isDirectory()) return;
-        File oldModels = new File(old, "models"), models = new File(workDir, "models");
-        if (oldModels.isDirectory() && !models.exists()) {
-            workDir.mkdirs();
-            if (oldModels.renameTo(models)) Log.info("Moved downloaded models to " + models);
-        }
-        File[] stamps = old.listFiles(f -> f.isDirectory() && f.getName().matches("[0-9a-f]{12}"));
-        if (stamps != null) {
-            for (File d : stamps) {
-                File[] files = d.listFiles();
-                if (files != null) for (File f : files) f.delete();
-                d.delete();
-            }
-        }
-        old.delete(); // only succeeds if nothing else is left in it
-    }
 
     /** Loads whisper and starts listening, once; also called when voice is switched on in the settings screen. */
     static synchronized void ensureStarted() {

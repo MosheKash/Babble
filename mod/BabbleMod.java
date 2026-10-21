@@ -65,10 +65,7 @@ public final class BabbleMod {
     /** Shared by client and server; on a dedicated server only the server-side keys matter. */
     static synchronized VoiceConfig config() {
         if (config == null) {
-            File file = new File(FMLPaths.CONFIGDIR.get().toFile(), "babble.properties");
-            File old = new File(FMLPaths.CONFIGDIR.get().toFile(), "voiceblocks.properties"); // name before the rename
-            if (!file.exists() && old.isFile() && old.renameTo(file)) Log.info("Moved settings from " + old.getName());
-            config = VoiceConfig.load(file);
+            config = VoiceConfig.load(new File(FMLPaths.CONFIGDIR.get().toFile(), "babble.properties"));
         }
         return config;
     }

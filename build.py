@@ -492,8 +492,8 @@ def prepare_project(step_no, total, entry, libs, model_path, opts):
 
     # Our sources replace the example mod; the MDK's pack.mcmeta stays (its format matches the version).
     shutil.rmtree(work / "src" / "main" / "java", ignore_errors=True)
-    # Clear every bundle folder we may have written before (incl. ones from older mod names), keeping only
-    # the MDK's own pack.mcmeta and META-INF; otherwise stale models/natives end up in the jar too.
+    # Clear every bundle folder from previous builds, keeping only the MDK's own pack.mcmeta and META-INF;
+    # otherwise stale models/natives end up in the jar too.
     for old in (work / "src" / "main" / "resources").glob("*"):
         if old.is_dir() and old.name != "META-INF":
             shutil.rmtree(old)
@@ -646,7 +646,7 @@ def main():
     if args.install:
         dest = Path(args.install).expanduser()
         dest.mkdir(parents=True, exist_ok=True)
-        for old in [*dest.glob("babble-*.jar"), *dest.glob("voiceblocks-*.jar")]:  # incl. jars from before the rename
+        for old in dest.glob("babble-*.jar"):
             old.unlink()
         shutil.copy2(jar, dest / jar.name)
         print(f"    installed into {dest}")
